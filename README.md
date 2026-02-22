@@ -2,251 +2,160 @@
 
 Reproducible development environment setup for the **OpenClaw AI Security Lab**.
 
-This repository documents the baseline system configuration used to build and test the OpenClaw lab environment on a fresh Ubuntu virtual machine.
+This repository provides an automated bootstrap process for building a **clean, snapshot-driven AI security research environment** on a fresh Ubuntu virtual machine.
 
-The goal is to create a **clean, snapshot-driven security research environment** that can later be automated via provisioning scripts.
+The goal is to create a consistent, rebuildable lab platform suitable for experimentation, testing, and security research involving OpenClaw and related tooling.
 
 ---
+
+## Quick Bootstrap Installation
+
+The entire development environment can be installed automatically using the provided bootstrap script.
+
+---
+
+## Requirements
+
+- Ubuntu LTS virtual machine
+- Fresh operating system installation
+- Non-root user with sudo privileges
+- Internet connectivity
+- Virtual machine snapshot capability (recommended)
+
+---
+
+## ⚠️ Fresh System Requirement
+
+This installer **must be executed on a clean Ubuntu installation**.
+
+The setup script assumes:
+
+- No existing Visual Studio Code APT repositories
+- No preconfigured Microsoft package sources
+- No prior Docker installations
+- Default Ubuntu package configuration
+
+Running the installer on an already-modified system may result in APT repository conflicts.
+
+### Recommended Workflow
+
+1. Install Ubuntu LTS
+2. Log in using a normal sudo-enabled user
+3. Run the bootstrap installer immediately
+4. Create snapshots after installation
+
+---
+
+## 🚀 One-Command Setup
+
+Run the following command on a fresh Ubuntu VM:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/<your-username>/openclaw-lab-setup/main/setup.sh | bash
+```
+
+The bootstrap script automatically installs and configures:
+- Base development packages
+- Python development environment
+- Visual Studio Code
+- Docker Engine + Docker Compose
+- GitHub CLI
+- VS Code development extensions
+- OpenClaw lab directory structure
+
+## Post-Installation Step (Required)
+
+Docker permissions are applied during installation.
+After setup completes:
+```bash
+reboot
+```
+
+After logging back in, verify Docker access:
+```bash
+docker info
+```
+Docker should function without sudo.
+
+## Recommended Snapshot Workflow
+| Stage	| Snapshot Name |
+|-------|---------------|
+| Fresh Ubuntu Install | ubuntu-base-clean |
+|After Bootstrap |	openclaw-dev-ready |
+
+Snapshots allow rapid rollback and reproducible lab rebuilding.
 
 ## Environment Overview
 
 **Target Platform**
 - Ubuntu LTS (Virtual Machine)
-- Fresh installation
-- Non-root user with sudo privileges
+- Snapshot-enabled workflow
+- Containerized tooling environment
 
 **Lab Philosophy**
 - Reproducible builds
-- Snapshot-based rollback
-- Containerized tooling
+- Infrastructure-as-code mindset
+- Snapshot-based recovery
 - Isolation from host system
+- Disposable research environments
 
----
+##  Directory Structure
 
-## Step 1 — Base System Packages
+The installer prepares the following workspace layout:
 
-Install core development and system utilities.
-
-```bash
-sudo apt update
-
-sudo apt install -y \
-build-essential git curl wget vim htop \
-net-tools unzip zip tree jq \
-ca-certificates software-properties-common
-
-sudo apt install -y \
-python3 python3-pip python3-venv
-```
-
----
-
-## Step 2 — Snapshot Base Ubuntu Image
-
-After completing base package installation:
-
-1. Shut down VM  
-2. Create snapshot  
-
-Example snapshot name:
-
-```
-ubuntu-base-clean
-```
-
-This provides a rollback point before development tooling installation.
-
----
-
-## Step 3 — Install Visual Studio Code
-
-Add Microsoft repository:
-
-```bash
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc | \
-gpg --dearmor > packages.microsoft.gpg
-
-sudo install -o root -g root -m 644 \
-packages.microsoft.gpg /etc/apt/keyrings/
-
-sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/packages.microsoft.gpg] \
-https://packages.microsoft.com/repos/code stable main" \
-> /etc/apt/sources.list.d/vscode.list'
-```
-
-Install VS Code:
-
-```bash
-sudo apt update
-sudo apt install code -y
-```
-
----
-
-## Step 4 — Install Docker Engine
-
-Remove legacy Docker versions:
-
-```bash
-sudo apt remove docker docker-engine docker.io containerd runc
-```
-
-Add Docker repository:
-
-```bash
-sudo mkdir -p /etc/apt/keyrings
-
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-```
-
-```bash
-echo \
-"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-https://download.docker.com/linux/ubuntu \
-$(lsb_release -cs) stable" | \
-sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-```
-
-Install Docker:
-
-```bash
-sudo apt update
-
-sudo apt install -y \
-docker-ce docker-ce-cli containerd.io \
-docker-buildx-plugin docker-compose-plugin
-```
-
----
-
-## Step 5 — Enable Docker Without sudo
-
-```bash
-sudo usermod -aG docker $USER
-```
-
-⚠️ Log out and back in (or reboot) for group changes to apply.
-
----
-
-## Step 6 — VS Code Development Extensions
-
-Install required extensions:
-
-```bash
-code --install-extension ms-azuretools.vscode-docker
-code --install-extension ms-vscode-remote.remote-containers
-code --install-extension ms-vscode-remote.vscode-remote-extensionpack
-code --install-extension ms-python.python
-code --install-extension ms-python.vscode-pylance
-code --install-extension eamodio.gitlens
-code --install-extension redhat.vscode-yaml
-code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
-```
-
----
-
-## Step 7 — Install GitHub CLI
-
-```bash
-type -p curl >/dev/null || sudo apt install curl -y
-
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
-sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-
-sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-```
-
-```bash
-echo \
-"deb [arch=$(dpkg --print-architecture) \
-signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] \
-https://cli.github.com/packages stable main" | \
-sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-```
-
-```bash
-sudo apt update
-sudo apt install gh -y
-```
-
----
-
-## Step 8 — Prepare Lab Directory Structure
-
-```bash
-mkdir -p ~/labs/openclaw
-mkdir -p ~/repos
-```
-
-Recommended layout:
-
-```
+```code
 ~/labs/
 └── openclaw/
-
 ~/repos/
 ```
 
----
+## Purpose
 
-## Step 9 — Environment Verification
+- labs/ → active experimentation environments
+- repos/ → cloned development repositories
 
-Validate installation:
+## Environment Verification
 
+Confirm successful installation:
 ```bash
 docker info
 code --version
 git --version
 python3 --version
+gh --version
 ```
 
----
+## Next Phase
 
-## Step 10 — Snapshot Development Environment
+After bootstrap completion:
+- Deploy OpenClaw containers
+- Configure AI agent environment
+- Implement lab workflows
+- Perform AI security experimentation
+- Capture reproducible research states
 
-Create snapshot **before OpenClaw installation**.
-
-Example:
-
-```
-openclaw-dev-ready
-```
-
-This snapshot represents a fully prepared development baseline.
-
----
-
-## Next Phase (Planned)
-
-Future automation will include:
-
-- setup.sh bootstrap script
-- Container provisioning
-- Dependency automation
-- Lab deployment workflows
-- Reproducible OpenClaw installation
-
----
-
-## Purpose
+## Project Purpose
 
 This repository exists to:
-
-- Document lab construction methodology
-- Enable rapid rebuild of research environments
+- Document OpenClaw lab construction methodology
+- Enable rapid rebuilding of research environments
 - Support experimentation in AI security workflows
-- Provide reproducible infrastructure for OpenClaw labs
+- Provide reproducible infrastructure for AI security labs
+- Demonstrate automated environment provisioning
 
----
-
-## Future Repository Structure
-
-```
+## Repository Structure
+```code
 openclaw-lab-setup/
 │
 ├── README.md
 ├── setup.sh
 └── docs/
 ```
+
+## Review Installer (Optional)
+
+You may inspect the bootstrap script before execution:
+```bash
+curl -fsSL https://raw.githubusercontent.com/<your-username>/openclaw-lab-setup/main/setup.sh
+```
+Transparency and reproducibility are core design goals of this project.
