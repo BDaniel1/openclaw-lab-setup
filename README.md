@@ -1,4 +1,4 @@
-# OpenClaw Lab Setup
+# 🦞 OpenClaw Lab Setup
 
 Reproducible development environment setup for the **OpenClaw AI Security Lab**.
 
