@@ -87,12 +87,12 @@ Snapshots allow rapid rollback and reproducible lab rebuilding.
 
 ## Environment Overview
 
-**Target Platform**
+### Target Platform
 - Ubuntu LTS (Virtual Machine)
 - Snapshot-enabled workflow
 - Containerized tooling environment
 
-**Lab Philosophy**
+### Lab Philosophy
 - Reproducible builds
 - Infrastructure-as-code mindset
 - Snapshot-based recovery
@@ -109,7 +109,7 @@ The installer prepares the following workspace layout:
 ~/repos/
 ```
 
-## Purpose
+### Purpose
 
 - labs/ → active experimentation environments
 - repos/ → cloned development repositories
